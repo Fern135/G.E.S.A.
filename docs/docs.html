@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>gesa — Generate Express Secure API</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --brand:#5b7cfa;
+      --brand-2:#00c2a8;
+      --bg:#0f1221;
+      --card:#151936;
+      --text:#e6ebff;
+      --muted:#a7b0d6;
+      --border: rgba(255,255,255,.08);
+    }
+    html, body { height:100%; background:var(--bg); color:var(--text); }
+    .navbar { background:linear-gradient(90deg, rgba(91,124,250,.2), rgba(0,194,168,.2)); backdrop-filter: blur(6px); }
+    .navbar-brand { font-weight:700; letter-spacing:.5px; }
+    .gradient-text { background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-background-clip: text; background-clip:text; color: transparent; }
+    .hero {
+      padding: 4rem 0 2rem;
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(91,124,250,.15), transparent),
+                  radial-gradient(1000px 500px at 80% -20%, rgba(0,194,168,.12), transparent);
+    }
+    .badge-soft { background: rgba(255,255,255,.06); border:1px solid var(--border); color: var(--text); }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card .card-header { border-bottom:1px solid var(--border); }
+    .section-title { border-bottom:1px solid var(--border); padding-bottom:.25rem; margin-bottom:1.25rem; }
+    pre, code { background: #0b0e1a !important; color:#cfe2ff; border:1px solid var(--border); }
+    pre { padding: 1rem; border-radius:.75rem; position:relative; }
+    .copy-btn {
+      position:absolute; top:.5rem; right:.5rem; z-index:5;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+    }
+    .table { color:var(--text); }
+    .table thead th { color:#cbd6ff; border-color:var(--border) !important; }
+    .table td, .table th { border-color:var(--border) !important; }
+    .toc a { text-decoration:none; color:var(--muted); }
+    .toc a.active { color:var(--text); }
+    .list-check i { color: var(--brand-2); margin-right:.5rem; }
+    .footer { color:var(--muted); border-top:1px solid var(--border); }
+    .kbd {
+      background:#0b0e1a; border:1px solid var(--border); padding:.15rem .4rem; border-radius:.35rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .pill {
+      display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .7rem; border:1px solid var(--border); border-radius:999px; background: rgba(255,255,255,.05);
+    }
+    a { color: #a6c8ff; }
+    a:hover { color:#cfe2ff; }
+    .shadow-soft { box-shadow: 0 15px 40px rgba(0,0,0,.25); }
+    .sticky-sidebar { position:sticky; top:90px; max-height: calc(100vh - 100px); overflow:auto; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark border-bottom border-opacity-10 border-light sticky-top">
+    <div class="container">
+      <a class="navbar-brand gradient-text" href="#"><i class="fa-solid fa-bolt me-2"></i>gesa</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div id="nav" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+          <li class="nav-item"><a class="nav-link" href="#overview">Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="#quickstart">Quick Start</a></li>
+          <li class="nav-item"><a class="nav-link" href="#security">Security</a></li>
+          <li class="nav-item"><a class="nav-link" href="#auth">Auth</a></li>
+          <li class="nav-item"><a class="nav-link" href="#config">Config</a></li>
+          <li class="nav-item"><a class="nav-link" href="#db">Database</a></li>
+          <li class="nav-item"><a class="nav-link" href="#docker">Docker</a></li>
+          <li class="nav-item"><a class="btn btn-sm btn-outline-light" href="#examples"><i class="fa-solid fa-terminal me-1"></i>Examples</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-8">
+          <h1 class="display-5 fw-bold lh-1">
+            Generate a <span class="gradient-text">secure Express API</span> in seconds
+          </h1>
+          <p class="lead mt-3 text-secondary" style="color:#c7d1ff !important;">
+            <strong>gesa</strong> scaffolds a production-grade Express backend with modern security, JWT &amp; Session auth, Argon2 hashing, RBAC, Zod validation, Redis, Swagger, and Prisma (SQLite by default) — in JS or TS.
+          </p>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <span class="pill"><i class="fa-solid fa-shield-halved"></i> Helmet + HPP + CORS + Rate limit</span>
+            <span class="pill"><i class="fa-solid fa-key"></i> JWT + Refresh (Redis)</span>
+            <span class="pill"><i class="fa-solid fa-cookie-bite"></i> Sessions + CSRF</span>
+            <span class="pill"><i class="fa-solid fa-database"></i> Prisma / Mongoose</span>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <a href="#quickstart" class="btn btn-primary shadow-soft"><i class="fa-solid fa-bolt me-2"></i>Get Started</a>
+            <a href="#toc" class="btn btn-outline-light"><i class="fa-solid fa-list-ul me-2"></i>Docs</a>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card shadow-soft">
+            <div class="card-body">
+              <h6 class="text-uppercase text-secondary mb-3">Install CLI</h6>
+              <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="npm install &amp;&amp; npm link">Copy</button><code>npm install
+npm link
+gesa --help</code></pre>
+              <div class="mt-3 small text-secondary">Link exposes <span class="kbd">gesa</span> globally.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="py-4">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Sidebar TOC -->
+        <aside class="col-lg-3">
+          <div id="toc" class="sticky-sidebar toc">
+            <div class="card">
+              <div class="card-header">
+                <strong><i class="fa-solid fa-list"></i> Contents</strong>
+              </div>
+              <ul class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action bg-transparent" href="#overview">Overview</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#features">Features</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#quickstart">Quick Start</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#commands">CLI Commands</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#structure">Generated Structure</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#security">Security</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#auth">Auth Flows</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#config">Configuration (.env)</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#db">Database & ORM</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#swagger">Swagger Docs</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#logging">Logging</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#scripts">NPM Scripts</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#docker">Docker</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#examples">Example Requests</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#troubleshooting">Troubleshooting</a>
+                <a class="list-group-item list-group-item-action bg-transparent" href="#license">License</a>
+              </ul>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content -->
+        <section class="col-lg-9">
+
+          <div id="overview" class="mb-4">
+            <h3 class="section-title">Overview</h3>
+            <p><strong>gesa</strong> is a single-file Node.js CLI that generates a fully-secure Express API in JavaScript (default) or TypeScript. You get a clean folder structure, smart defaults, and battle-tested security middleware out of the box.</p>
+          </div>
+
+          <div id="features" class="mb-4">
+            <h3 class="section-title">Features</h3>
+            <ul class="list-unstyled list-check">
+              <li><i class="fa-solid fa-check-circle"></i> Security: Helmet, HPP, strict CORS, global/per-route rate limiters</li>
+              <li><i class="fa-solid fa-check-circle"></i> Auth: JWT (RS256 access + refresh rotation) and Session cookies + CSRF</li>
+              <li><i class="fa-solid fa-check-circle"></i> Passwords: Argon2 hashing</li>
+              <li><i class="fa-solid fa-check-circle"></i> RBAC: role-based access control middleware</li>
+              <li><i class="fa-solid fa-check-circle"></i> Validation: Zod-powered request validation helper</li>
+              <li><i class="fa-solid fa-check-circle"></i> Observability: Pino structured logs (pretty in dev)</li>
+              <li><i class="fa-solid fa-check-circle"></i> Storage: Redis (sessions & refresh), Prisma (SQLite default), Mongoose (Mongo)</li>
+              <li><i class="fa-solid fa-check-circle"></i> Docs: Swagger UI at <span class="kbd">/docs</span></li>
+            </ul>
+          </div>
+
+          <div id="quickstart" class="mb-4">
+            <h3 class="section-title">Quick Start</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-square-js me-1"></i> JavaScript</div>
+                  <div class="card-body">
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="gesa new myapi && cd myapi && cp .env.example .env && npx prisma generate && npm run dev">Copy</button><code>gesa new myapi
+cd myapi
+cp .env.example .env
+npx prisma generate
+npm run dev</code></pre>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-code me-1"></i> TypeScript</div>
+                  <div class="card-body">
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="gesa new myapi --ts && cd myapi && cp .env.example .env && npx prisma generate && npm run dev">Copy</button><code>gesa new myapi --ts
+cd myapi
+cp .env.example .env
+npx prisma generate
+npm run dev</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="commands" class="mb-4">
+            <h3 class="section-title">CLI Commands</h3>
+            <div class="card">
+              <div class="card-body">
+                <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="gesa new <name> [--ts] [--pm npm|yarn|pnpm] [--auth jwt|session|both] [--db sqlite|postgres|mysql|mongo] [--no-install] [--no-git]">Copy</button><code>gesa new &lt;name&gt; [--ts] [--pm npm|yarn|pnpm] [--auth jwt|session|both] [--db sqlite|postgres|mysql|mongo] [--no-install] [--no-git]
+gesa startproject &lt;name&gt;  # alias</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div id="structure" class="mb-4">
+            <h3 class="section-title">Generated Structure</h3>
+            <div class="card">
+              <div class="card-body">
+                <pre class="mb-0"><code>myapi/
+  .env.example
+  prisma/
+    schema.prisma
+  swagger/
+    openapi.json
+  src/
+    index.(js|ts)
+    app.(js|ts)
+    lib/
+      env.(js|ts) • errors.(js|ts) • logger.(js|ts) • rateLimiters.(js|ts) • redis.(js|ts)
+    auth/
+      password.(js|ts) • jwt.(js|ts) • rbac.(js|ts) • session.(js|ts)
+      middleware/
+        requireAuthJwt.(js|ts) • csrf.(js|ts) • validate.(js|ts)
+    db/
+      index.(js|ts) • prisma.(js|ts) • mongo.(js|ts)
+    routes/
+      health.(js|ts) • docs.(js|ts) • auth.jwt.(js|ts) • auth.session.(js|ts) • users.(js|ts)</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div id="security" class="mb-4">
+            <h3 class="section-title">Security</h3>
+            <ul class="list-unstyled list-check">
+              <li><i class="fa-solid fa-shield-halved"></i> <strong>Helmet</strong> adds secure headers</li>
+              <li><i class="fa-solid fa-filter"></i> <strong>HPP</strong> prevents parameter pollution</li>
+              <li><i class="fa-solid fa-earth-americas"></i> <strong>CORS allowlist</strong> via <span class="kbd">CORS_ORIGINS</span></li>
+              <li><i class="fa-solid fa-gauge-high"></i> <strong>Rate limiting</strong> globally + login limiter</li>
+              <li><i class="fa-solid fa-cookie-bite"></i> <strong>Session cookies</strong> with <span class="kbd">httpOnly</span>, <span class="kbd">sameSite</span>, optional <span class="kbd">secure</span></li>
+              <li><i class="fa-solid fa-shield"></i> <strong>CSRF</strong> for session flows (<span class="kbd">/api/auth/session/csrf</span>)</li>
+              <li><i class="fa-solid fa-key"></i> <strong>JWT</strong> with RS256 and refresh rotation (Redis allowlist)</li>
+              <li><i class="fa-solid fa-lock"></i> <strong>Argon2</strong> password hashing</li>
+              <li><i class="fa-solid fa-user-shield"></i> <strong>RBAC</strong> middleware</li>
+              <li><i class="fa-solid fa-check-double"></i> <strong>Zod</strong> validation helper</li>
+            </ul>
+          </div>
+
+          <div id="auth" class="mb-4">
+            <h3 class="section-title">Auth Flows</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-key me-2"></i>JWT</div>
+                  <div class="card-body">
+                    <ul class="small">
+                      <li><span class="kbd">POST /api/auth/jwt/register</span> → create user</li>
+                      <li><span class="kbd">POST /api/auth/jwt/login</span> → <code>{ access, refresh }</code></li>
+                      <li><span class="kbd">POST /api/auth/jwt/refresh</span> → rotates tokens</li>
+                      <li><span class="kbd">GET /api/auth/jwt/me</span> (Bearer access)</li>
+                    </ul>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="curl -sX POST http://localhost:8080/api/auth/jwt/login -H 'content-type: application/json' -d '{\"email\":\"a@b.com\",\"password\":\"hunter2\"}'">Copy</button><code># Login (example)
+curl -sX POST http://localhost:8080/api/auth/jwt/login \
+  -H "content-type: application/json" \
+  -d '{"email":"a@b.com","password":"hunter2"}'</code></pre>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-cookie-bite me-2"></i>Sessions + CSRF</div>
+                  <div class="card-body">
+                    <ul class="small">
+                      <li><span class="kbd">GET /api/auth/session/csrf</span> → <code>{ csrfToken }</code></li>
+                      <li>Send <span class="kbd">x-csrf-token</span> header for POSTs</li>
+                      <li><span class="kbd">/register</span>, <span class="kbd">/login</span>, <span class="kbd">/logout</span>, <span class="kbd">/me</span></li>
+                    </ul>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="curl -c cookies.txt -b cookies.txt -s http://localhost:8080/api/auth/session/csrf">Copy</button><code># CSRF token
+curl -c cookies.txt -b cookies.txt -s http://localhost:8080/api/auth/session/csrf</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card mt-3">
+              <div class="card-body">
+                <p class="mb-2"><strong>Protected & RBAC:</strong></p>
+                <ul class="small">
+                  <li><span class="kbd">GET /api/users/profile</span> — works with JWT <em>or</em> Session depending on <span class="kbd">AUTH_MODE</span></li>
+                  <li><span class="kbd">GET /api/users/admin</span> — requires <span class="kbd">admin</span> role</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div id="config" class="mb-4">
+            <h3 class="section-title">Configuration (.env)</h3>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>PORT</code></td><td>API port (default <code>8080</code>)</td></tr>
+                  <tr><td><code>CORS_ORIGINS</code></td><td>Comma-separated allowlist (e.g., <code>http://localhost:3000</code>)</td></tr>
+                  <tr><td><code>AUTH_MODE</code></td><td><code>jwt</code> | <code>session</code> | <code>both</code> (default)</td></tr>
+                  <tr><td><code>JWT_ISSUER</code>, <code>JWT_AUDIENCE</code></td><td>Token claims</td></tr>
+                  <tr><td><code>JWT_PRIVATE_KEY</code>, <code>JWT_PUBLIC_KEY</code></td><td>Required for JWT (use RSA keys)</td></tr>
+                  <tr><td><code>JWT_ACCESS_TTL</code>, <code>JWT_REFRESH_TTL</code></td><td>Access/refresh lifetimes (e.g., <code>15m</code>, <code>30d</code>)</td></tr>
+                  <tr><td><code>SESSION_SECRET</code></td><td>Required for sessions</td></tr>
+                  <tr><td><code>SESSION_* </code></td><td>Cookie name, <code>secure</code>, <code>sameSite</code>, <code>domain</code></td></tr>
+                  <tr><td><code>REDIS_URL</code></td><td>Redis connection for sessions & refresh</td></tr>
+                  <tr><td><code>DB_DRIVER</code></td><td><code>sqlite</code> (default), <code>postgres</code>, <code>mysql</code>, <code>mongo</code></td></tr>
+                  <tr><td><code>DATABASE_URL</code></td><td>Prisma connection string (SQLite default is <code>file:./dev.db</code>)</td></tr>
+                  <tr><td><code>MONGO_URL</code></td><td>Mongo connection when <code>DB_DRIVER=mongo</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="alert alert-info mt-3 mb-0">
+              <i class="fa-solid fa-lock me-2"></i><strong>Production tip:</strong> behind a proxy, call <code>app.set('trust proxy', 1)</code> and set <code>SESSION_SECURE=true</code>.
+            </div>
+          </div>
+
+          <div id="db" class="mb-4">
+            <h3 class="section-title">Database & ORM</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-database me-2"></i>Prisma (SQLite default)</div>
+                  <div class="card-body">
+                    <p class="small mb-2">Edit <code>prisma/schema.prisma</code> and run:</p>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="npx prisma generate">Copy</button><code>npx prisma generate</code></pre>
+                    <p class="small mt-3 mb-2"><strong>Migrate:</strong></p>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="npx prisma migrate dev --name init">Copy</button><code>npx prisma migrate dev --name init</code></pre>
+                    <p class="small mt-3 mb-0">Switching to Postgres/MySQL? Change <code>provider</code> and <code>DATABASE_URL</code>.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-leaf me-2"></i>MongoDB (Mongoose)</div>
+                  <div class="card-body">
+                    <p class="small mb-2">Set <code>DB_DRIVER=mongo</code> and <code>MONGO_URL</code>. A basic <code>User</code> model is created in <code>src/db/mongo.(js|ts)</code>.</p>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="DB_DRIVER=mongo
+MONGO_URL=mongodb://localhost:27017/myapi">Copy</button><code>DB_DRIVER=mongo
+MONGO_URL=mongodb://localhost:27017/myapi</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="swagger" class="mb-4">
+            <h3 class="section-title">Swagger Docs</h3>
+            <p>OpenAPI spec is in <span class="kbd">swagger/openapi.json</span> and served at <span class="kbd">/docs</span>.</p>
+          </div>
+
+          <div id="logging" class="mb-4">
+            <h3 class="section-title">Logging</h3>
+            <p>Pino logger with pretty output in development; HTTP logs via <code>pino-http</code>. Set <span class="kbd">LOG_LEVEL</span> if needed.</p>
+          </div>
+
+          <div id="scripts" class="mb-4">
+            <h3 class="section-title">NPM Scripts</h3>
+            <div class="card">
+              <div class="card-body">
+                <pre class="mb-0"><code>npm run dev     # JS: nodemon ; TS: ts-node-dev
+npm start       # production start
+npm run lint    # ESLint (standard preset)
+npm test        # Vitest</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div id="docker" class="mb-4">
+            <h3 class="section-title">Docker</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-brands fa-docker me-2"></i>API + Redis</div>
+                  <div class="card-body">
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="docker compose --profile api up --build">Copy</button><code>docker compose --profile api up --build</code></pre>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-database me-2"></i>Optional DBs</div>
+                  <div class="card-body">
+                    <pre class="mb-2"><button class="btn btn-sm copy-btn" data-copy="docker compose --profile postgres up -d">Copy</button><code>docker compose --profile postgres up -d</code></pre>
+                    <pre class="mb-2"><button class="btn btn-sm copy-btn" data-copy="docker compose --profile mysql up -d">Copy</button><code>docker compose --profile mysql up -d</code></pre>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="docker compose --profile mongo up -d">Copy</button><code>docker compose --profile mongo up -d</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="examples" class="mb-4">
+            <h3 class="section-title">Example Requests</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-key me-2"></i>JWT</div>
+                  <div class="card-body">
+                    <pre class="mb-2"><button class="btn btn-sm copy-btn" data-copy='curl -sX POST http://localhost:8080/api/auth/jwt/register -H "content-type: application/json" -d "{\"email\":\"a@b.com\",\"password\":\"hunter2\"}"'>Copy</button><code># Register
+curl -sX POST http://localhost:8080/api/auth/jwt/register \
+  -H "content-type: application/json" \
+  -d '{"email":"a@b.com","password":"hunter2"}'</code></pre>
+                    <pre class="mb-2"><button class="btn btn-sm copy-btn" data-copy='curl -sX POST http://localhost:8080/api/auth/jwt/login -H "content-type: application/json" -d "{\"email\":\"a@b.com\",\"password\":\"hunter2\"}"'>Copy</button><code># Login
+curl -sX POST http://localhost:8080/api/auth/jwt/login \
+  -H "content-type: application/json" \
+  -d '{"email":"a@b.com","password":"hunter2"}'</code></pre>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy='curl -s http://localhost:8080/api/auth/jwt/me -H "authorization: Bearer &lt;ACCESS&gt;"'>Copy</button><code># Me
+curl -s http://localhost:8080/api/auth/jwt/me \
+  -H "authorization: Bearer &lt;ACCESS&gt;"</code></pre>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100">
+                  <div class="card-header"><i class="fa-solid fa-cookie-bite me-2"></i>Sessions + CSRF</div>
+                  <div class="card-body">
+                    <pre class="mb-2"><button class="btn btn-sm copy-btn" data-copy="curl -c cookies.txt -b cookies.txt -s http://localhost:8080/api/auth/session/csrf">Copy</button><code># CSRF token
+curl -c cookies.txt -b cookies.txt -s http://localhost:8080/api/auth/session/csrf</code></pre>
+                    <pre class="mb-2"><button class="btn btn-sm copy-btn" data-copy='curl -c cookies.txt -b cookies.txt -sX POST http://localhost:8080/api/auth/session/login -H "content-type: application/json" -H "x-csrf-token: &lt;TOKEN&gt;" -d "{\"email\":\"a@b.com\",\"password\":\"hunter2\"}"'>Copy</button><code># Login
+curl -c cookies.txt -b cookies.txt -sX POST http://localhost:8080/api/auth/session/login \
+  -H "content-type: application/json" \
+  -H "x-csrf-token: &lt;TOKEN&gt;" \
+  -d '{"email":"a@b.com","password":"hunter2"}'</code></pre>
+                    <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="curl -c cookies.txt -b cookies.txt -s http://localhost:8080/api/auth/session/me">Copy</button><code># Me
+curl -c cookies.txt -b cookies.txt -s http://localhost:8080/api/auth/session/me</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="troubleshooting" class="mb-4">
+            <h3 class="section-title">Troubleshooting</h3>
+            <div class="card">
+              <div class="card-body">
+                <p class="mb-2"><strong>ESLint peer dependency conflicts (ERESOLVE)</strong></p>
+                <p class="small">The generator pins compatible versions: ESLint <code>^8.57.0</code>, <code>eslint-config-standard@17</code>, <code>eslint-plugin-n@16</code>. If you change versions and see conflicts, pin back to those numbers or switch to a lighter ESLint config.</p>
+                <p class="mb-2"><strong>JWT keys</strong></p>
+                <pre class="mb-0"><button class="btn btn-sm copy-btn" data-copy="openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -pubout -out public.pem">Copy</button><code>openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -pubout -out public.pem</code></pre>
+                <p class="small mt-2">Paste contents into <code>JWT_PRIVATE_KEY</code> and <code>JWT_PUBLIC_KEY</code> (quoted) in <code>.env</code>.</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="license" class="mb-5">
+            <h3 class="section-title">License</h3>
+            <p>MIT © You</p>
+          </div>
+
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer py-4">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center">
+      <div class="small">Built with <i class="fa-solid fa-heart text-danger"></i> &nbsp;by gesa</div>
+      <div class="small">Docs theme: Bootstrap 5 + Font Awesome</div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Copy-to-clipboard
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-copy') || btn.nextElementSibling?.innerText || '';
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+          setTimeout(()=> btn.innerHTML = original, 1500);
+        });
+      });
+    });
+
+    // Active section highlighting
+    const toc = document.querySelectorAll('.toc a');
+    const ids = [...toc].map(a => a.getAttribute('href'));
+    const options = { rootMargin: '0px 0px -70% 0px', threshold: 0 };
+    const onIntersect = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          toc.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id));
+        }
+      });
+    };
+    const observer = new IntersectionObserver(onIntersect, options);
+    ids.forEach(id => { const el = document.querySelector(id); if (el) observer.observe(el); });
+  </script>
+</body>
+</html>
