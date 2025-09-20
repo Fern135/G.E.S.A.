@@ -928,6 +928,19 @@ function writeProject(root, project, isTS) {
   }
 }
 
+
+/* -------------------------------
+ * Get 12-hour time
+ * ----------------------------- */
+function get12HourTime() {
+    const now = new Date();
+    return now.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
 /* -------------------------------
  * CLI entry
  * ----------------------------- */
@@ -969,16 +982,19 @@ function main() {
 }
 
 
+// Write error to log file
 function writeErrorToLog(error, projectDir) {
-  const errorLog = path.join(projectDir, "error.log");
+  const errorLog = path.join(projectDir, `error-${new Date().toISOString()} - ${get12HourTime()}.log`);
   const errorText = `${new Date().toISOString()}: ${error.toString()}\n`;
   fs.appendFileSync(errorLog, errorText);
 }
 
 
-try {
-    main();
+// Main entry point
+try {    
+    main();    
 }catch(error) {
-    console.error(`error: ${error.toString()}`);
-    writeErrorToLog(error, process.cwd());
+  console.error(`error: ${error.toString()}`);
+  writeErrorToLog(error, process.cwd());
 }
+    
